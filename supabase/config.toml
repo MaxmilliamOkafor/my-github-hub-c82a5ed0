@@ -44,3 +44,9 @@ verify_jwt = false
 
 [functions.live-jobs-feed]
 verify_jwt = false
+
+[functions.extract-keywords-ai]
+verify_jwt = false
+
+[functions.parse-cv]
+verify_jwt = false

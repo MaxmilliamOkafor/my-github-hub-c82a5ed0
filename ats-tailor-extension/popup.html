@@ -66,6 +66,21 @@
         <p id="jobCompany" class="job-company"></p>
         <p id="jobLocation" class="job-location"></p>
         <span id="noJobBadge" class="no-job-badge hidden">No job detected</span>
+        
+        <!-- AI Keyword Extraction -->
+        <div class="ai-keywords-section" id="aiKeywordsSection">
+          <button id="extractKeywordsBtn" class="btn btn-secondary btn-small btn-ai">
+            <span class="btn-icon-left">🤖</span>
+            <span class="btn-text">AI Extract Keywords</span>
+          </button>
+          <div class="ai-keywords-result hidden" id="aiKeywordsResult">
+            <div class="ai-keywords-header">
+              <span class="ai-badge">✨ AI Extracted</span>
+              <span class="ai-count" id="aiKeywordCount">0 keywords</span>
+            </div>
+            <div class="ai-keywords-categories" id="aiKeywordsCategories"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Tailor Actions -->
