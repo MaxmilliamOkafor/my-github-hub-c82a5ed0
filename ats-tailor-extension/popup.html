@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATS Tailored CV & Cover Letter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <img src="icons/icon48.png" alt="ATS Tailor" class="logo-icon">
+        <div class="logo-text">
+          <h1>ATS Tailor</h1>
+          <span class="tagline">Lightning-fast CV & Cover Letter</span>
+        </div>
+      </div>
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot"></span>
+        <span class="status-text">Ready</span>
+      </div>
+    </header>
+
+    <!-- Login Section -->
+    <section id="loginSection" class="section hidden">
+      <div class="login-card">
+        <h2>🔐 Sign In</h2>
+        <p class="login-subtitle">Use your QuantumHire account</p>
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+        </div>
+        <button id="loginBtn" class="btn btn-primary btn-large">Sign In</button>
+      </div>
+    </section>
+
+    <!-- Main Section -->
+    <section id="mainSection" class="section hidden">
+      <!-- User Info -->
+      <div class="user-bar">
+        <span id="userEmail" class="user-email"></span>
+        <button id="logoutBtn" class="btn-link">Logout</button>
+      </div>
+
+      <!-- Settings -->
+      <div class="mini-settings" aria-label="ATS Tailor settings">
+        <label class="toggle-row" for="autoTailorToggle">
+          <span class="toggle-label">Automatic ATS tailor</span>
+          <input type="checkbox" id="autoTailorToggle" />
+        </label>
+        <p class="toggle-help">Runs once per job only when upload fields are detected.</p>
+      </div>
+
+      <!-- Job Detection -->
+      <div class="job-card" id="jobCard">
+        <div class="job-header">
+          <span class="job-label">Detected Job</span>
+          <button id="refreshJob" class="btn-icon" title="Refresh">🔄</button>
+        </div>
+        <h3 id="jobTitle" class="job-title">Scanning page...</h3>
+        <p id="jobCompany" class="job-company"></p>
+        <p id="jobLocation" class="job-location"></p>
+        <span id="noJobBadge" class="no-job-badge hidden">No job detected</span>
+      </div>
+
+      <!-- Tailor Actions -->
+      <div class="actions-card">
+        <button id="tailorBtn" class="btn btn-primary btn-large">
+          <span class="btn-icon-left">⚡</span>
+          <span class="btn-text">Tailor CV & Cover Letter</span>
+          <span class="btn-time">~5s</span>
+        </button>
+        
+        <div class="progress-container hidden" id="progressContainer">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <p class="progress-text" id="progressText">Initializing...</p>
+        </div>
+      </div>
+
+      <!-- Generated Documents -->
+      <div class="documents-card hidden" id="documentsCard">
+        <!-- ATS Match Score -->
+        <div class="ats-match-section" id="atsMatchSection">
+          <div class="ats-match-header">
+            <span class="ats-label">ATS Match</span>
+            <span class="ats-score" id="atsMatchScore">0%</span>
+          </div>
+          <div class="ats-keywords hidden" id="atsKeywords">
+            <div class="keywords-matched" id="matchedKeywords"></div>
+            <div class="keywords-missing" id="missingKeywords"></div>
+          </div>
+        </div>
+
+        <h3>📄 Generated Documents</h3>
+        
+        <!-- Document List with Filenames -->
+        <div class="document-item" id="cvDocument">
+          <div class="document-info">
+            <span class="document-icon">📋</span>
+            <div class="document-details">
+              <span class="document-name" id="cvFileName">Tailored CV</span>
+              <span class="document-size" id="cvSize"></span>
+            </div>
+          </div>
+          <div class="document-actions">
+            <button id="downloadCv" class="btn btn-small btn-icon-only" title="Download">⬇️</button>
+          </div>
+        </div>
+
+        <div class="document-item" id="coverDocument">
+          <div class="document-info">
+            <span class="document-icon">✉️</span>
+            <div class="document-details">
+              <span class="document-name" id="coverFileName">Cover Letter</span>
+              <span class="document-size" id="coverSize"></span>
+            </div>
+          </div>
+          <div class="document-actions">
+            <button id="downloadCover" class="btn btn-small btn-icon-only" title="Download">⬇️</button>
+          </div>
+        </div>
+
+        <!-- Preview Tabs -->
+        <div class="preview-tabs">
+          <button id="previewCvTab" class="preview-tab active">Resume</button>
+          <button id="previewCoverTab" class="preview-tab">Cover Letter</button>
+        </div>
+        
+        <!-- Preview Content -->
+        <div class="preview-content-wrapper">
+          <div id="previewContent" class="preview-content placeholder">Generated content will appear here...</div>
+        </div>
+        
+        <!-- Copy Button -->
+        <button id="copyContent" class="btn btn-secondary btn-copy">
+          <span class="btn-icon-left">📋</span> Copy
+        </button>
+
+        <button id="attachBoth" class="btn btn-success btn-large">
+          <span class="btn-icon-left">📎</span>
+          Attach Both to Application
+        </button>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-card">
+        <div class="stat">
+          <span class="stat-value" id="todayCount">0</span>
+          <span class="stat-label">Today</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="totalCount">0</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="avgTime">0s</span>
+          <span class="stat-label">Avg Time</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span class="version">v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

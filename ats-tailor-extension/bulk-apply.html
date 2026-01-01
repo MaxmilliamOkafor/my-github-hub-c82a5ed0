@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Apply Dashboard - ATS Tailor</title>
+  <link rel="stylesheet" href="bulk-apply.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <img src="icons/icon48.png" alt="ATS Tailor" class="logo-icon">
+        <div class="logo-text">
+          <h1>Bulk Apply Dashboard</h1>
+          <span class="tagline">Sequential Job Application Engine</span>
+        </div>
+      </div>
+      <a href="popup.html" class="back-link">← Back to Main</a>
+    </header>
+
+    <!-- Upload Section -->
+    <section class="upload-section">
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📁</div>
+        <p class="upload-text">Drag & drop CSV file or click to browse</p>
+        <p class="upload-hint">Format: job_url, candidate_name, email, phone, priority, notes</p>
+        <input type="file" id="csvInput" accept=".csv" hidden>
+      </div>
+      
+      <div class="upload-divider">
+        <span>OR</span>
+      </div>
+      
+      <!-- Manual URL Input -->
+      <div class="manual-url-section">
+        <label for="manualUrls" class="manual-label">📋 Paste Job URLs (one per line)</label>
+        <textarea 
+          id="manualUrls" 
+          class="manual-textarea" 
+          placeholder="https://company.workday.com/job/123&#10;https://boards.greenhouse.io/company/jobs/456&#10;https://jobs.smartrecruiters.com/company/789"
+          rows="5"
+        ></textarea>
+        <div class="manual-url-actions">
+          <button id="addUrlsBtn" class="btn btn-primary btn-sm">➕ Add URLs to Queue</button>
+          <button id="clearUrlsBtn" class="btn btn-secondary btn-sm">Clear</button>
+        </div>
+      </div>
+      
+      <button id="loadSampleBtn" class="btn btn-secondary btn-sm">Load Sample Data</button>
+    </section>
+
+    <!-- Jobs Table -->
+    <section class="jobs-section hidden" id="jobsSection">
+      <div class="table-header">
+        <div class="table-info">
+          <span id="jobCount">0 jobs loaded</span>
+          <span class="table-separator">|</span>
+          <span id="selectedCount">0 selected</span>
+        </div>
+        <div class="table-actions">
+          <button id="selectAllBtn" class="btn btn-sm">Select All</button>
+          <button id="deselectAllBtn" class="btn btn-sm btn-secondary">Deselect All</button>
+        </div>
+      </div>
+      
+      <div class="table-container">
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th class="col-select">✓</th>
+              <th class="col-status">Status</th>
+              <th class="col-url">Job URL</th>
+              <th class="col-candidate">Candidate</th>
+              <th class="col-priority">Priority</th>
+            </tr>
+          </thead>
+          <tbody id="jobsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Control Panel -->
+    <section class="control-panel hidden" id="controlPanel">
+      <div class="control-row">
+        <div class="speed-control">
+          <label for="speedSelect">Speed:</label>
+          <select id="speedSelect">
+            <option value="60000">1 job/min</option>
+            <option value="30000">2 jobs/min</option>
+            <option value="12000">5 jobs/min</option>
+            <option value="6000" selected>10 jobs/min</option>
+          </select>
+        </div>
+        
+        <div class="control-buttons">
+          <button id="startBtn" class="btn btn-primary btn-lg">
+            <span>▶️</span> START
+          </button>
+          <button id="pauseBtn" class="btn btn-warning btn-lg" disabled>
+            <span>⏸️</span> PAUSE
+          </button>
+          <button id="resumeBtn" class="btn btn-success btn-lg hidden" disabled>
+            <span>▶️</span> RESUME
+          </button>
+          <button id="stopBtn" class="btn btn-danger btn-lg" disabled>
+            <span>⏹️</span> STOP
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-stats">
+          <div class="stat">
+            <span class="stat-value" id="progressCount">0/0</span>
+            <span class="stat-label">Progress</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="successCount">0</span>
+            <span class="stat-label">Success</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="failedCount">0</span>
+            <span class="stat-label">Failed</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="etaValue">--</span>
+            <span class="stat-label">ETA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Job Display -->
+      <div class="current-job hidden" id="currentJobDisplay">
+        <span class="current-label">Currently applying to:</span>
+        <span class="current-url" id="currentJobUrl"></span>
+      </div>
+    </section>
+
+    <!-- Simplify ATS Score Panel -->
+    <section class="ats-score-panel hidden" id="atsScorePanel">
+      <h3>📊 Simplify ATS Score Breakdown</h3>
+      <div class="score-grid">
+        <div class="score-item">
+          <span class="score-category">Keyword Coverage</span>
+          <span class="score-points" id="keywordCoverageScore">0/50</span>
+        </div>
+        <div class="score-item">
+          <span class="score-category">Missing Keywords</span>
+          <span class="score-points negative" id="missingKeywordsScore">0/20</span>
+        </div>
+        <div class="score-item">
+          <span class="score-category">Experience Match</span>
+          <span class="score-points" id="experienceMatchScore">0/20</span>
+        </div>
+        <div class="score-item">
+          <span class="score-category">Technical Alignment</span>
+          <span class="score-points" id="technicalAlignmentScore">0/15</span>
+        </div>
+        <div class="score-item">
+          <span class="score-category">Location/Format</span>
+          <span class="score-points" id="locationFormatScore">0/15</span>
+        </div>
+        <div class="score-item total">
+          <span class="score-category">TOTAL SCORE</span>
+          <span class="score-points" id="totalATSScore">0/100</span>
+        </div>
+      </div>
+      <div class="missing-keywords-section hidden" id="missingKeywordsSection">
+        <h4>🔴 Top 5 Missing Keywords</h4>
+        <ul id="missingKeywordsList"></ul>
+      </div>
+    </section>
+
+    <!-- Log Section -->
+    <section class="log-section">
+      <div class="log-header">
+        <h3>📋 Activity Log</h3>
+        <button id="clearLogBtn" class="btn btn-sm btn-secondary">Clear</button>
+      </div>
+      <div class="log-container" id="logContainer">
+        <div class="log-entry info">Ready to start bulk applications...</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="bulk-apply.js"></script>
+</body>
+</html>
