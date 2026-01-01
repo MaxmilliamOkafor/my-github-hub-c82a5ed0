@@ -1,0 +1,550 @@
+/* QuantumHire AI - Content Script Styles v2.0 */
+/* Enhanced with floating control panel */
+
+/* ============= HIGHLIGHT STYLES ============= */
+
+.quantumhire-filled {
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.quantumhire-resume-field {
+  border: 3px dashed #8b5cf6 !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+  background: rgba(139, 92, 246, 0.05) !important;
+}
+
+/* ============= TOAST NOTIFICATIONS ============= */
+
+.quantumhire-toast {
+  position: fixed;
+  bottom: 100px;
+  right: 400px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  z-index: 2147483646;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: qh-slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 300px;
+  pointer-events: auto;
+}
+
+@keyframes qh-slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.quantumhire-toast.success { border-left: 4px solid #22c55e; }
+.quantumhire-toast.error { border-left: 4px solid #ef4444; }
+.quantumhire-toast.info { border-left: 4px solid #3b82f6; }
+.quantumhire-toast.warning { border-left: 4px solid #f59e0b; }
+
+/* ============= FLOATING CONTROL PANEL ============= */
+
+.qh-floating-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  background: linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.2);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 2147483646;
+  overflow: hidden;
+  animation: qh-panelSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+/* Container wrapper to allow clicking through non-interactive areas */
+.qh-panel-container {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 400px;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2147483645;
+}
+
+@keyframes qh-panelSlideUp {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.qh-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: move;
+}
+
+.qh-panel-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qh-panel-logo-icon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.qh-panel-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+}
+
+.qh-panel-subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.qh-panel-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.qh-panel-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.qh-panel-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.qh-panel-btn.close:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Panel Body */
+.qh-panel-body {
+  padding: 16px;
+}
+
+/* Status Section */
+.qh-status-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+.qh-status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+  animation: qh-pulse 2s ease-in-out infinite;
+}
+
+.qh-status-indicator.paused {
+  background: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+  animation: none;
+}
+
+.qh-status-indicator.error {
+  background: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  animation: none;
+}
+
+@keyframes qh-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.qh-status-info {
+  flex: 1;
+}
+
+.qh-status-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.qh-status-detail {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+/* Speed Control */
+.qh-speed-section {
+  margin-bottom: 14px;
+}
+
+.qh-speed-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.qh-speed-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.qh-speed-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qh-speed-btn:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #fff;
+}
+
+.qh-speed-btn.active {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(99, 102, 241, 0.3) 100%);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #fff;
+}
+
+/* Action Buttons */
+.qh-action-section {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.qh-action-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.qh-action-btn.primary {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #fff;
+}
+
+.qh-action-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.qh-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.qh-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.qh-action-btn.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.qh-action-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.qh-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Progress Section */
+.qh-progress-section {
+  margin-bottom: 14px;
+}
+
+.qh-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.qh-progress-title {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.qh-progress-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.qh-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.qh-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Stats Row */
+.qh-stats-row {
+  display: flex;
+  gap: 8px;
+}
+
+.qh-stat-item {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.qh-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.qh-stat-value.success { color: #22c55e; }
+.qh-stat-value.error { color: #ef4444; }
+.qh-stat-value.warning { color: #f59e0b; }
+
+.qh-stat-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* Current Job Display */
+.qh-current-job {
+  padding: 12px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+  margin-top: 14px;
+}
+
+.qh-current-job-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.qh-current-job-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qh-current-job-company {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 2px;
+}
+
+/* Minimized State */
+.qh-floating-panel.minimized {
+  width: auto;
+  height: auto;
+}
+
+.qh-floating-panel.minimized .qh-panel-body {
+  display: none;
+}
+
+.qh-floating-panel.minimized .qh-panel-header {
+  border-bottom: none;
+  padding: 10px 14px;
+}
+
+/* Dragging State */
+.qh-floating-panel.dragging {
+  opacity: 0.9;
+  cursor: grabbing;
+}
+
+/* Log Area */
+.qh-log-area {
+  max-height: 100px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  margin-top: 12px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 11px;
+}
+
+.qh-log-entry {
+  padding: 3px 0;
+  color: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.qh-log-entry:last-child {
+  border-bottom: none;
+}
+
+.qh-log-entry.success { color: #22c55e; }
+.qh-log-entry.error { color: #ef4444; }
+.qh-log-entry.info { color: #3b82f6; }
+
+/* Scrollbar */
+.qh-log-area::-webkit-scrollbar {
+  width: 4px;
+}
+
+.qh-log-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.qh-log-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+/* Legacy support */
+.autoapply-filled { border-color: #8b5cf6 !important; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important; }
+.autoapply-toast { position: fixed; bottom: 100px; right: 400px; z-index: 2147483646; pointer-events: auto; }
+
+/* ============= INVALID JOB PAGE STYLES ============= */
+
+.qh-invalid-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 16px;
+  gap: 12px;
+}
+
+.qh-invalid-icon {
+  font-size: 40px;
+  opacity: 0.8;
+}
+
+.qh-invalid-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f59e0b;
+  line-height: 1.4;
+}
+
+.qh-invalid-action {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border-top: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.qh-skip-indicator {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  animation: qh-pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes qh-pulse-text {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* Status variants */
+.qh-status.qh-status-error {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.qh-status.qh-status-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.qh-status.qh-status-success {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Toast close button */
+.quantumhire-toast-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  margin-left: 8px;
+  line-height: 1;
+}
+
+.quantumhire-toast-close:hover {
+  color: #fff;
+}

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantumHire AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-row">
+        <img src="icons/icon48.png" alt="QuantumHire" class="logo">
+        <div class="brand">
+          <h1>QuantumHire AI</h1>
+          <span class="tagline">ATS-Optimized Auto Apply</span>
+        </div>
+        <div class="header-actions">
+          <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Not Connected State -->
+    <section id="not-connected" class="section">
+      <div class="connect-card">
+        <div class="connect-icon">🚀</div>
+        <h2>Welcome to QuantumHire</h2>
+        <p class="connect-desc">AI-powered job applications with ATS-optimized resumes. Connect to start auto-applying.</p>
+        
+        <form id="login-form" class="login-form">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="your@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="password" placeholder="••••••••" required>
+              <button type="button" class="password-toggle-btn" id="login-toggle-password" title="Show password">
+                <span class="eye-icon">👁️</span>
+              </button>
+            </div>
+          </div>
+          <button type="submit" id="connect-btn" class="btn primary full">
+            <span class="btn-icon">🔐</span>
+            Connect Account
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Connected State -->
+    <section id="connected" class="section hidden">
+      <!-- Compact Profile Bar -->
+      <div class="profile-bar">
+        <div class="profile-left">
+          <div class="avatar" id="avatar">MO</div>
+          <div class="profile-info">
+            <span class="profile-name" id="profile-name">Max Okafor</span>
+            <span class="profile-stats-inline">
+              <span id="skills-count">0</span> skills • <span id="exp-years">0</span> yrs exp
+            </span>
+          </div>
+        </div>
+        <div class="connection-badge">
+          <span class="status-dot"></span>
+          Ready
+        </div>
+      </div>
+
+      <!-- ATS Preview Card (NEW - Shows before applying) -->
+      <div id="ats-preview-card" class="ats-preview-card hidden">
+        <div class="ats-preview-header">
+          <span class="ats-preview-title">📊 ATS Match Preview</span>
+          <button id="close-preview-btn" class="close-btn">×</button>
+        </div>
+        <div class="ats-score-ring">
+          <svg viewBox="0 0 36 36" class="circular-chart large">
+            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="circle" id="preview-score-circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <text x="18" y="20.35" class="percentage" id="preview-score-text">--%</text>
+          </svg>
+        </div>
+        <div class="ats-keywords-preview">
+          <div class="keywords-section matched">
+            <span class="keywords-label">✅ Matched (<span id="matched-count">0</span>)</span>
+            <div class="keywords-chips" id="matched-keywords"></div>
+          </div>
+          <div class="keywords-section missing">
+            <span class="keywords-label">⚠️ Missing (<span id="missing-count">0</span>)</span>
+            <div class="keywords-chips" id="missing-keywords"></div>
+          </div>
+        </div>
+        <div class="ats-preview-actions">
+          <button id="proceed-apply-btn" class="btn primary">
+            <span class="btn-icon">⚡</span> Proceed with Apply
+          </button>
+          <button id="skip-job-btn" class="btn ghost">Skip Job</button>
+        </div>
+      </div>
+
+      <!-- Current Job Detection -->
+      <div class="job-card" id="job-card">
+        <div class="job-card-header">
+          <span class="job-badge">🎯 Job Detected</span>
+          <span class="ats-badge" id="ats-badge">ATS</span>
+        </div>
+        <div class="job-details" id="job-details">
+          <span class="job-checking">Scanning page...</span>
+        </div>
+        <div class="job-actions" id="job-actions" style="display:none;">
+          <button id="preview-match-btn" class="btn small ghost">
+            <span class="btn-icon">📊</span> Preview Match
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Action Buttons -->
+      <div class="action-buttons">
+        <button id="apply-now-btn" class="btn action-btn" disabled>
+          <div class="action-content">
+            <span class="action-icon">🚀</span>
+            <div class="action-text">
+              <span class="action-title">Smart Apply</span>
+              <span class="action-subtitle">Tailor + Fill + Attach + Submit</span>
+            </div>
+          </div>
+        </button>
+
+        <button id="add-queue-btn" class="btn queue-add-btn" disabled>
+          <span class="btn-icon">➕</span>
+          Add to Queue
+        </button>
+      </div>
+
+      <!-- Progress Indicator -->
+      <div id="progress-section" class="progress-section hidden">
+        <div class="progress-header">
+          <span class="progress-title">Applying...</span>
+          <span class="progress-percent" id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-steps">
+          <div class="step" id="step-1">
+            <span class="step-icon">📝</span>
+            <span class="step-text">Extracting job</span>
+          </div>
+          <div class="step" id="step-2">
+            <span class="step-icon">🔍</span>
+            <span class="step-text">ATS analysis</span>
+          </div>
+          <div class="step" id="step-3">
+            <span class="step-icon">✨</span>
+            <span class="step-text">Tailoring CV</span>
+          </div>
+          <div class="step" id="step-4">
+            <span class="step-icon">📋</span>
+            <span class="step-text">Auto-filling</span>
+          </div>
+          <div class="step" id="step-5">
+            <span class="step-icon">📄</span>
+            <span class="step-text">Attaching PDF</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generated PDFs Section (Shows during/after application) -->
+      <div id="generated-pdfs-section" class="generated-pdfs-section hidden">
+        <div class="generated-pdfs-header">
+          <span class="generated-pdfs-title">📄 Generated PDFs</span>
+          <button id="preview-pdfs-btn" class="btn small ghost">
+            <span class="btn-icon">👁️</span> Preview
+          </button>
+        </div>
+        
+        <div class="pdf-files-list">
+          <div class="pdf-file-item" id="resume-pdf-item">
+            <div class="pdf-file-icon resume-icon">📄</div>
+            <div class="pdf-file-info">
+              <span class="pdf-file-name" id="resume-pdf-name">Resume.pdf</span>
+              <span class="pdf-file-size" id="resume-pdf-size">--</span>
+            </div>
+            <div class="pdf-file-actions">
+              <button class="btn-icon-only" id="preview-resume-pdf-btn" title="Preview">👁️</button>
+              <button class="btn-icon-only primary" id="download-resume-pdf-btn" title="Download">⬇️</button>
+            </div>
+          </div>
+          
+          <div class="pdf-file-item" id="cover-pdf-item">
+            <div class="pdf-file-icon cover-icon">📋</div>
+            <div class="pdf-file-info">
+              <span class="pdf-file-name" id="cover-pdf-name">CoverLetter.pdf</span>
+              <span class="pdf-file-size" id="cover-pdf-size">--</span>
+            </div>
+            <div class="pdf-file-actions">
+              <button class="btn-icon-only" id="preview-cover-pdf-btn" title="Preview">👁️</button>
+              <button class="btn-icon-only primary" id="download-cover-pdf-btn" title="Download">⬇️</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Resume/Cover Letter Tabs -->
+        <div class="pdf-content-tabs">
+          <button class="pdf-tab active" data-pdf-tab="resume">
+            Resume
+          </button>
+          <button class="pdf-tab" data-pdf-tab="cover">
+            Cover Letter
+          </button>
+        </div>
+        
+        <div class="pdf-preview-area" id="pdf-preview-area">
+          <div class="pdf-preview-placeholder">
+            Click Preview to view document
+          </div>
+        </div>
+        
+        <button id="copy-content-btn" class="btn ghost full">
+          <span class="btn-icon">📋</span> Copy
+        </button>
+      </div>
+
+      <!-- Results Section -->
+      <div id="results-section" class="results-section hidden">
+        <!-- Compact Match Score -->
+        <div class="match-card-compact">
+          <div class="match-score-mini">
+            <svg viewBox="0 0 36 36" class="circular-chart mini">
+              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circle" id="match-circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <text x="18" y="20.35" class="percentage" id="match-score-text">0%</text>
+            </svg>
+          </div>
+          <div class="match-info">
+            <span class="match-title">ATS Match Score</span>
+            <span class="match-subtitle" id="keywords-matched">0 keywords matched</span>
+          </div>
+          <div class="match-actions">
+            <button id="expand-results-btn" class="btn-icon-only">▼</button>
+          </div>
+        </div>
+
+        <!-- Expandable Results -->
+        <div id="expanded-results" class="expanded-results hidden">
+          <!-- Keywords -->
+          <div class="keywords-section-full">
+            <div class="keywords-header">
+              <span>🏷️ Keywords Analysis</span>
+            </div>
+            <div class="keywords-list" id="keywords-list"></div>
+          </div>
+
+          <!-- Tabs for Resume/Cover Letter -->
+          <div class="content-tabs">
+            <button class="content-tab active" data-tab="resume">
+              <span>📄</span> Resume
+            </button>
+            <button class="content-tab" data-tab="cover">
+              <span>✉️</span> Cover Letter
+            </button>
+          </div>
+
+          <div class="content-area">
+            <div class="content-pane active" id="resume-pane">
+              <textarea id="tailored-resume" readonly placeholder="Your tailored resume..."></textarea>
+              <div class="content-actions">
+                <button class="btn small" id="copy-resume-btn">
+                  <span class="btn-icon">📋</span> Copy
+                </button>
+                <button class="btn small primary" id="download-resume-btn">
+                  <span class="btn-icon">⬇️</span> PDF
+                </button>
+              </div>
+            </div>
+            <div class="content-pane" id="cover-pane">
+              <textarea id="tailored-cover" readonly placeholder="Your tailored cover letter..."></textarea>
+              <div class="content-actions">
+                <button class="btn small" id="copy-cover-btn">
+                  <span class="btn-icon">📋</span> Copy
+                </button>
+                <button class="btn small primary" id="download-cover-btn">
+                  <span class="btn-icon">⬇️</span> PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Queue Panel -->
+      <div class="queue-panel" id="queue-panel">
+        <div class="queue-header" id="queue-header">
+          <div class="queue-info">
+            <span class="queue-icon">📋</span>
+            <span class="queue-text"><strong id="queue-count">0</strong> jobs in queue</span>
+          </div>
+          <div class="queue-controls">
+            <button id="batch-apply-btn" class="btn small primary" disabled>
+              <span class="btn-icon">🚀</span> Start Batch Apply
+            </button>
+            <button id="clear-queue-btn" class="btn small ghost" title="Clear queue">🗑️</button>
+          </div>
+        </div>
+
+        <!-- Queue List (Collapsible) -->
+        <div class="queue-list" id="queue-list"></div>
+      </div>
+
+      <!-- Batch Apply Progress -->
+      <div id="batch-progress-section" class="batch-progress-section hidden">
+        <div class="batch-header">
+          <span class="batch-title">🚀 Batch Auto-Apply</span>
+          <div class="batch-controls">
+            <button id="pause-batch-btn" class="btn-icon-only" title="Pause">⏸️</button>
+            <button id="cancel-batch-btn" class="btn-icon-only danger" title="Cancel">⏹️</button>
+          </div>
+        </div>
+        <div class="batch-stats-row">
+          <div class="batch-stat">
+            <span class="batch-stat-value" id="batch-current">0</span>
+            <span class="batch-stat-label">Current</span>
+          </div>
+          <div class="batch-stat">
+            <span class="batch-stat-value" id="batch-total">0</span>
+            <span class="batch-stat-label">Total</span>
+          </div>
+          <div class="batch-stat success">
+            <span class="batch-stat-value" id="batch-success">0</span>
+            <span class="batch-stat-label">Applied</span>
+          </div>
+          <div class="batch-stat error">
+            <span class="batch-stat-value" id="batch-failed">0</span>
+            <span class="batch-stat-label">Failed</span>
+          </div>
+        </div>
+        <div class="batch-progress-bar">
+          <div class="batch-progress-fill" id="batch-progress-fill"></div>
+        </div>
+        <div class="batch-current-job" id="batch-current-job">
+          <span class="batch-job-label">Now applying:</span>
+          <span class="batch-job-title" id="batch-job-title">-</span>
+        </div>
+        <div class="batch-log" id="batch-log"></div>
+      </div>
+
+      <!-- Settings Panel (Collapsible) -->
+      <div id="settings-panel" class="settings-panel hidden">
+        <div class="settings-header">
+          <span>⚙️ Settings</span>
+          <button id="close-settings-btn" class="close-btn">×</button>
+        </div>
+        
+        <!-- SMART APPLY AUTOMATION TOGGLE (Main Feature) -->
+        <div class="setting-row highlight">
+          <div class="setting-info">
+            <span class="setting-label">🚀 Smart Apply Mode</span>
+            <span class="setting-desc">Full automation: tailor, fill, attach, submit</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="smartapply-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Auto-Fill Toggle -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">⚡ Auto-Fill Forms</span>
+            <span class="setting-desc">Automatically fill application forms</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autofill-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Auto-Submit Toggle -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">📤 Auto-Submit</span>
+            <span class="setting-desc">Submit applications automatically</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autosubmit-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Auto-Navigate Workday -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">➡️ Auto-Navigate</span>
+            <span class="setting-desc">Click Next on multi-page applications</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autonavigate-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Answer Memory Toggle -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">🧠 Remember Answers</span>
+            <span class="setting-desc">Learn from your responses</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="memory-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Speed Multiplier Control -->
+        <div class="setting-row speed-control">
+          <div class="setting-info">
+            <span class="setting-label">🏃 Speed Multiplier</span>
+            <span class="setting-desc">Controls automation speed</span>
+          </div>
+          <div class="speed-selector-container">
+            <div class="speed-buttons" id="speed-buttons">
+              <button class="speed-btn active" data-speed="1">1x</button>
+              <button class="speed-btn" data-speed="1.5">1.5x</button>
+              <button class="speed-btn" data-speed="2">2x</button>
+              <button class="speed-btn" data-speed="3">3x</button>
+            </div>
+          </div>
+        </div>
+        <div class="speed-info-row" id="speed-info">
+          <span class="speed-timing">~90-120s/job</span>
+          <span class="speed-note">Safest for anti-bot</span>
+        </div>
+
+        <!-- Memory Stats -->
+        <div class="memory-stats" id="memory-stats">
+          <span class="memory-count">💾 <span id="saved-answers-count">0</span> answers saved</span>
+          <button id="clear-memory-btn" class="btn small ghost">Clear Memory</button>
+        </div>
+
+        <!-- ATS Credentials -->
+        <div class="credentials-section">
+          <div class="credentials-header-toggle" id="credentials-toggle">
+            <span>🔑 ATS Login Credentials</span>
+            <span class="toggle-arrow">▼</span>
+          </div>
+          <div class="credentials-body hidden" id="credentials-body">
+            <p class="credentials-note">For Workday/iCIMS auto-login. Stored locally only.</p>
+            <div class="form-group">
+              <label for="ats-email">Email</label>
+              <input type="email" id="ats-email" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+              <label for="ats-password">Password</label>
+              <div class="password-input-wrapper">
+                <input type="password" id="ats-password" placeholder="••••••••">
+                <button type="button" id="toggle-password-btn" class="toggle-password-btn">👁️</button>
+              </div>
+            </div>
+            <div class="credentials-actions">
+              <button id="save-credentials-btn" class="btn small primary">💾 Save</button>
+              <button id="clear-credentials-btn" class="btn small ghost">🗑️</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="settings-actions">
+          <button id="refresh-btn" class="btn ghost full">
+            <span class="btn-icon">🔄</span> Refresh Profile
+          </button>
+          <button id="open-dashboard-btn" class="btn ghost full">
+            <span class="btn-icon">🏠</span> Open Dashboard
+          </button>
+          <button id="disconnect-btn" class="btn danger full">Disconnect Account</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Status Message -->
+    <div id="status-message" class="status-message hidden"></div>
+
+    <!-- PDF Preview Modal -->
+    <div id="pdf-preview-modal" class="modal-overlay hidden">
+      <div class="modal-container pdf-modal">
+        <div class="modal-header">
+          <span class="modal-title" id="pdf-modal-title">📄 Resume Preview</span>
+          <button id="close-pdf-modal-btn" class="close-btn">×</button>
+        </div>
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-modal-tab="resume">Resume</button>
+          <button class="modal-tab" data-modal-tab="cover">Cover Letter</button>
+        </div>
+        <div class="pdf-modal-content" id="pdf-modal-content">
+          <div class="pdf-document">
+            <div class="pdf-page" id="pdf-page-content">
+              <!-- Formatted PDF content will be rendered here -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="modal-copy-btn" class="btn ghost">
+            <span class="btn-icon">📋</span> Copy
+          </button>
+          <button id="modal-download-btn" class="btn primary">
+            <span class="btn-icon">⬇️</span> Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue Progress Floating Bar -->
+    <div id="queue-progress-bar" class="queue-progress-bar hidden">
+      <div class="queue-progress-content">
+        <div class="queue-progress-info">
+          <span class="queue-progress-icon">🚀</span>
+          <span class="queue-progress-text">
+            <strong id="queue-remaining">0</strong> jobs remaining
+          </span>
+        </div>
+        <div class="queue-progress-stats">
+          <span class="queue-stat success">✓ <span id="queue-applied">0</span></span>
+          <span class="queue-stat failed">✗ <span id="queue-skipped">0</span></span>
+        </div>
+        <div class="queue-mini-progress">
+          <div class="queue-mini-fill" id="queue-mini-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
