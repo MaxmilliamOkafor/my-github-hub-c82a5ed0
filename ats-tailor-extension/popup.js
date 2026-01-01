@@ -154,6 +154,7 @@ class ATSTailor {
     document.getElementById('downloadCover')?.addEventListener('click', () => this.downloadDocument('cover'));
     document.getElementById('attachBoth')?.addEventListener('click', () => this.attachBothDocuments());
     document.getElementById('copyContent')?.addEventListener('click', () => this.copyCurrentContent());
+    document.getElementById('extractKeywordsBtn')?.addEventListener('click', () => this.extractKeywordsAI());
 
     // Settings
     document.getElementById('autoTailorToggle')?.addEventListener('change', (e) => {
@@ -763,6 +764,132 @@ class ATSTailor {
       toast.classList.remove('show');
       setTimeout(() => toast.remove(), 300);
     }, 3000);
+  }
+
+  /**
+   * AI-Powered Keyword Extraction using Resume-Matcher style LLM extraction
+   */
+  async extractKeywordsAI() {
+    if (!this.currentJob || !this.currentJob.description) {
+      this.showToast('No job description detected', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('extractKeywordsBtn');
+    const resultContainer = document.getElementById('aiKeywordsResult');
+    const categoriesContainer = document.getElementById('aiKeywordsCategories');
+    const countEl = document.getElementById('aiKeywordCount');
+    
+    if (btn) {
+      btn.disabled = true;
+      btn.querySelector('.btn-text').textContent = 'Extracting...';
+    }
+
+    try {
+      await this.refreshSessionIfNeeded();
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/extract-keywords-ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.session?.access_token || ''}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          description: this.currentJob.description,
+          jobTitle: this.currentJob.title || '',
+          company: this.currentJob.company || '',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to extract keywords');
+      }
+
+      const result = await response.json();
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      const keywords = result.keywords;
+      
+      // Display results
+      if (resultContainer) resultContainer.classList.remove('hidden');
+      if (countEl) countEl.textContent = `${result.totalKeywords} keywords`;
+      
+      // Build categories HTML
+      if (categoriesContainer) {
+        categoriesContainer.innerHTML = '';
+        
+        const categories = [
+          { key: 'required_skills', title: 'Required Skills', class: 'required', items: keywords.required_skills },
+          { key: 'preferred_skills', title: 'Preferred Skills', class: 'preferred', items: keywords.preferred_skills },
+          { key: 'tools_technologies', title: 'Tools & Technologies', class: 'tools', items: keywords.tools_technologies },
+          { key: 'key_responsibilities', title: 'Key Responsibilities', class: 'responsibilities', items: keywords.key_responsibilities?.slice(0, 5) },
+        ];
+        
+        for (const cat of categories) {
+          if (cat.items && cat.items.length > 0) {
+            const section = document.createElement('div');
+            section.className = 'ai-keyword-category';
+            section.innerHTML = `
+              <div class="ai-category-header">
+                <span class="ai-category-title ${cat.class}">${cat.title}</span>
+                <span class="ai-category-count">${cat.items.length}</span>
+              </div>
+              <div class="ai-category-chips">
+                ${cat.items.slice(0, 8).map(item => 
+                  `<span class="ai-chip ${cat.class}">${this.escapeHtml(item.length > 25 ? item.substring(0, 25) + '...' : item)}</span>`
+                ).join('')}
+                ${cat.items.length > 8 ? `<span class="ai-chip">+${cat.items.length - 8} more</span>` : ''}
+              </div>
+            `;
+            categoriesContainer.appendChild(section);
+          }
+        }
+        
+        // Show experience level and certifications if available
+        if (keywords.experience_level || (keywords.certifications && keywords.certifications.length > 0)) {
+          const metaSection = document.createElement('div');
+          metaSection.className = 'ai-keyword-category';
+          metaSection.innerHTML = `
+            <div class="ai-category-header">
+              <span class="ai-category-title">Job Meta</span>
+            </div>
+            <div class="ai-category-chips">
+              ${keywords.experience_level ? `<span class="ai-chip">${keywords.experience_level} level</span>` : ''}
+              ${(keywords.certifications || []).slice(0, 3).map(cert => 
+                `<span class="ai-chip">${this.escapeHtml(cert)}</span>`
+              ).join('')}
+            </div>
+          `;
+          categoriesContainer.appendChild(metaSection);
+        }
+      }
+
+      // Store extracted keywords for use in tailoring
+      this.aiExtractedKeywords = keywords;
+      await chrome.storage.local.set({ ats_ai_keywords: keywords });
+      
+      this.showToast(`Extracted ${result.totalKeywords} keywords!`, 'success');
+
+    } catch (error) {
+      console.error('AI keyword extraction error:', error);
+      this.showToast(error.message || 'Extraction failed', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.querySelector('.btn-text').textContent = 'AI Extract Keywords';
+      }
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 }
 

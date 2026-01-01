@@ -571,3 +571,118 @@ body {
   from { opacity: 0; transform: translate(-50%, 10px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* AI Keywords Section */
+.ai-keywords-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.btn-ai {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(0, 212, 255, 0.3));
+  border: 1px solid rgba(124, 58, 237, 0.4);
+}
+
+.btn-ai:hover {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.5), rgba(0, 212, 255, 0.5));
+  border-color: rgba(124, 58, 237, 0.6);
+}
+
+.btn-ai:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-keywords-result {
+  margin-top: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.ai-keywords-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ai-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.ai-count {
+  font-size: 9px;
+  color: rgba(255,255,255,0.6);
+}
+
+.ai-keywords-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-keyword-category {
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.ai-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ai-category-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+
+.ai-category-title.required { color: #ff6b6b; }
+.ai-category-title.preferred { color: #ffa502; }
+.ai-category-title.tools { color: #00d4ff; }
+.ai-category-title.responsibilities { color: #2ed573; }
+
+.ai-category-count {
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+}
+
+.ai-category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ai-chip {
+  font-size: 9px;
+  padding: 2px 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.8);
+}
+
+.ai-chip.required { border: 1px solid rgba(255, 107, 107, 0.4); }
+.ai-chip.preferred { border: 1px solid rgba(255, 165, 2, 0.4); }
+.ai-chip.tools { border: 1px solid rgba(0, 212, 255, 0.4); }
+.ai-chip.responsibilities { border: 1px solid rgba(46, 213, 115, 0.4); }
+
+.no-job-badge {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 9px;
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.15);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
