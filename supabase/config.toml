@@ -1,0 +1,46 @@
+project_id = "wntpldomgjutwufphnpg"
+
+[functions.tailor-application]
+verify_jwt = false
+
+[functions.answer-questions]
+verify_jwt = false
+
+[functions.generate-pdf]
+verify_jwt = false
+
+[functions.process-email]
+verify_jwt = true
+
+[functions.background-apply]
+verify_jwt = true
+
+[functions.scrape-jobs]
+verify_jwt = false
+
+[functions.gmail-oauth]
+verify_jwt = false
+
+[functions.send-email-resend]
+verify_jwt = false
+
+[functions.search-jobs-google]
+verify_jwt = false
+
+[functions.live-jobs]
+verify_jwt = false
+
+[functions.test-openai]
+verify_jwt = false
+
+[functions.validate-openai-key]
+verify_jwt = false
+
+[functions.validate-job-urls]
+verify_jwt = false
+
+[functions.report-broken-link]
+verify_jwt = false
+
+[functions.live-jobs-feed]
+verify_jwt = false
