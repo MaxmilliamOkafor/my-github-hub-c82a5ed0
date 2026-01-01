@@ -567,14 +567,14 @@
 
   // ============ TURBO-FAST REPLACE LOOP (guarded) ============
   let attachLoopStarted = false;
-  let attachLoop200ms = null;
-  let attachLoop1s = null;
+  let attachLoop100ms = null;
+  let attachLoop500ms = null;
 
   function stopAttachLoops() {
-    if (attachLoop200ms) clearInterval(attachLoop200ms);
-    if (attachLoop1s) clearInterval(attachLoop1s);
-    attachLoop200ms = null;
-    attachLoop1s = null;
+    if (attachLoop100ms) clearInterval(attachLoop100ms);
+    if (attachLoop500ms) clearInterval(attachLoop500ms);
+    attachLoop100ms = null;
+    attachLoop500ms = null;
     attachLoopStarted = false;
   }
 
@@ -595,7 +595,8 @@
     // Run a single cleanup once right before attaching (prevents UI flicker)
     killXButtons();
 
-    attachLoop200ms = setInterval(() => {
+    // FASTER: 100ms loop for quick attachment
+    attachLoop100ms = setInterval(() => {
       if (!filesLoaded) return;
       forceCVReplace();
       forceCoverReplace();
@@ -604,9 +605,10 @@
         console.log('[ATS Tailor] Attach complete — stopping loops');
         stopAttachLoops();
       }
-    }, 200);
+    }, 100);
 
-    attachLoop1s = setInterval(() => {
+    // Backup loop at 500ms for edge cases
+    attachLoop500ms = setInterval(() => {
       if (!filesLoaded) return;
       forceEverything();
 
@@ -614,7 +616,10 @@
         console.log('[ATS Tailor] Attach complete — stopping loops');
         stopAttachLoops();
       }
-    }, 1000);
+    }, 500);
+    
+    // Auto-stop after 10s to prevent infinite loops
+    setTimeout(() => stopAttachLoops(), 10000);
   }
 
   // ============ LOAD FILES AND START ==========
@@ -637,7 +642,7 @@
 
   // ============ INIT - AUTO-DETECT AND TAILOR ============
   function initAutoTailor() {
-    // Wait for page to stabilize
+    // FASTER: Reduced wait time from 1.5s to 500ms
     setTimeout(() => {
       if (hasUploadFields()) {
         console.log('[ATS Tailor] Upload fields detected! Starting auto-tailor...');
@@ -656,15 +661,15 @@
         
         observer.observe(document.body, { childList: true, subtree: true });
         
-        // Fallback: check again after 5s
+        // FASTER: Reduced fallback from 5s to 2s
         setTimeout(() => {
           if (!hasTriggeredTailor && hasUploadFields()) {
             observer.disconnect();
             autoTailorDocuments();
           }
-        }, 5000);
+        }, 2000);
       }
-    }, 1500); // Wait 1.5s for page to load
+    }, 500); // FASTER: Was 1500ms
   }
 
   // Start

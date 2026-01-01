@@ -556,42 +556,69 @@ class ATSTailor {
 
       updateProgress(35, 'Generating tailored documents...');
 
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/tailor-application`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.session.access_token}`,
-          apikey: SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          jobTitle: this.currentJob.title || '',
-          company: this.currentJob.company || '',
-          location: this.currentJob.location || '',
-          description: this.currentJob.description || '',
-          requirements: [],
-          userProfile: {
-            firstName: p.first_name || '',
-            lastName: p.last_name || '',
-            email: p.email || this.session.user.email || '',
-            phone: p.phone || '',
-            linkedin: p.linkedin || '',
-            github: p.github || '',
-            portfolio: p.portfolio || '',
-            coverLetter: p.cover_letter || '',
-            workExperience: Array.isArray(p.work_experience) ? p.work_experience : [],
-            education: Array.isArray(p.education) ? p.education : [],
-            skills: Array.isArray(p.skills) ? p.skills : [],
-            certifications: Array.isArray(p.certifications) ? p.certifications : [],
-            achievements: Array.isArray(p.achievements) ? p.achievements : [],
-            atsStrategy: p.ats_strategy || '',
-            city: p.city || undefined,
-            country: p.country || undefined,
-            address: p.address || undefined,
-            state: p.state || undefined,
-            zipCode: p.zip_code || undefined,
-          },
-        }),
-      });
+      // Use AbortController for timeout + retry logic
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+      
+      let response;
+      let lastError;
+      
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          response = await fetch(`${SUPABASE_URL}/functions/v1/tailor-application`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${this.session.access_token}`,
+              apikey: SUPABASE_ANON_KEY,
+            },
+            signal: controller.signal,
+            body: JSON.stringify({
+              jobTitle: this.currentJob.title || '',
+              company: this.currentJob.company || '',
+              location: this.currentJob.location || '',
+              description: this.currentJob.description || '',
+              requirements: [],
+              userProfile: {
+                firstName: p.first_name || '',
+                lastName: p.last_name || '',
+                email: p.email || this.session.user.email || '',
+                phone: p.phone || '',
+                linkedin: p.linkedin || '',
+                github: p.github || '',
+                portfolio: p.portfolio || '',
+                coverLetter: p.cover_letter || '',
+                workExperience: Array.isArray(p.work_experience) ? p.work_experience : [],
+                education: Array.isArray(p.education) ? p.education : [],
+                skills: Array.isArray(p.skills) ? p.skills : [],
+                certifications: Array.isArray(p.certifications) ? p.certifications : [],
+                achievements: Array.isArray(p.achievements) ? p.achievements : [],
+                atsStrategy: p.ats_strategy || '',
+                city: p.city || undefined,
+                country: p.country || undefined,
+                address: p.address || undefined,
+                state: p.state || undefined,
+                zipCode: p.zip_code || undefined,
+              },
+            }),
+          });
+          
+          if (response.ok) break; // Success, exit retry loop
+          lastError = new Error(`Server returned ${response.status}`);
+        } catch (err) {
+          lastError = err;
+          if (err.name === 'AbortError') {
+            throw new Error('Request timed out. Please try again.');
+          }
+          // Wait before retry
+          if (attempt < 1) await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+      
+      clearTimeout(timeoutId);
+      
+      if (!response?.ok) {
+        throw lastError || new Error('Failed to connect to server');
 
       updateProgress(70, 'Processing results...');
 
@@ -770,9 +797,20 @@ class ATSTailor {
    * AI-Powered Keyword Extraction using Resume-Matcher style LLM extraction
    */
   async extractKeywordsAI() {
-    if (!this.currentJob || !this.currentJob.description) {
-      this.showToast('No job description detected', 'error');
+    if (!this.currentJob) {
+      this.showToast('No job detected', 'error');
       return;
+    }
+    
+    // If no description, try to re-detect with fresh extraction
+    if (!this.currentJob.description || this.currentJob.description.length < 50) {
+      this.showToast('Re-scanning page for description...', 'info');
+      await this.detectCurrentJob();
+      
+      if (!this.currentJob?.description || this.currentJob.description.length < 50) {
+        this.showToast('Could not find job description on page', 'error');
+        return;
+      }
     }
 
     const btn = document.getElementById('extractKeywordsBtn');
@@ -909,42 +947,57 @@ function extractJobInfoFromPageInjected() {
     return '';
   };
 
+  const getMultipleText = (selectors, minLength = 100) => {
+    for (const sel of selectors) {
+      try {
+        const els = document.querySelectorAll(sel);
+        for (const el of els) {
+          const text = el?.textContent?.trim();
+          if (text && text.length >= minLength) return text;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return '';
+  };
+
   const getMeta = (name) =>
     document.querySelector(`meta[name="${name}"]`)?.getAttribute('content') ||
     document.querySelector(`meta[property="${name}"]`)?.getAttribute('content') ||
     '';
 
-  // Platform-specific selectors
+  // Platform-specific selectors - ENHANCED for better description extraction
   const platformSelectors = {
     greenhouse: {
       title: ['h1.app-title', 'h1.posting-headline', 'h1', '[data-test="posting-title"]'],
       company: ['#company-name', '.company-name', '.posting-categories strong', '[data-test="company-name"]', 'a[href*="/jobs"] span'],
       location: ['.location', '.posting-categories .location', '[data-test="location"]'],
-      description: ['#content', '.posting', '.posting-description', '[data-test="description"]'],
+      description: ['#content', '.posting', '.posting-description', '[data-test="description"]', '.content-wrapper', '.job-description', 'main article', 'main section'],
     },
     workday: {
       title: ['h1[data-automation-id="jobPostingHeader"]', 'h1[data-automation-id="jobPostingTitle"]', 'h1', '[data-automation-id="job-title"]'],
       company: ['div[data-automation-id="jobPostingCompany"]', '[data-automation-id="companyName"]', '.css-1f9qtsv'],
       location: ['div[data-automation-id="locations"]', '[data-automation-id="jobPostingLocation"]', '[data-automation-id="location"]'],
-      description: ['div[data-automation-id="jobPostingDescription"]', '[data-automation-id="jobDescription"]', '.jobPostingDescription'],
+      description: ['div[data-automation-id="jobPostingDescription"]', '[data-automation-id="jobDescription"]', '.jobPostingDescription', '[data-automation-id="richTextArea"]'],
     },
     smartrecruiters: {
       title: ['h1[data-test="job-title"]', 'h1', '.job-title'],
       company: ['[data-test="job-company-name"]', '[class*="company" i]', '.company-name'],
       location: ['[data-test="job-location"]', '[class*="location" i]', '.job-location'],
-      description: ['[data-test="job-description"]', '[class*="job-description" i]', '.job-description'],
+      description: ['[data-test="job-description"]', '[class*="job-description" i]', '.job-description', 'article', 'main'],
     },
     teamtailor: {
       title: ['h1', '[data-qa="job-title"]', '.job-title'],
       company: ['[data-qa="job-company"]', '[class*="company" i]', '.department-name'],
       location: ['[data-qa="job-location"]', '[class*="location" i]', '.location'],
-      description: ['[data-qa="job-description"]', 'main', '.job-description'],
+      description: ['[data-qa="job-description"]', 'main', '.job-description', 'article'],
     },
     workable: {
       title: ['h1', '[data-ui="job-title"]', '.job-title'],
       company: ['[data-ui="company-name"]', '[class*="company" i]', 'header a'],
       location: ['[data-ui="job-location"]', '[class*="location" i]', '.location'],
-      description: ['[data-ui="job-description"]', '[class*="description" i]', 'section'],
+      description: ['[data-ui="job-description"]', '[class*="description" i]', 'section', 'main'],
     },
     icims: {
       title: ['h1', '.iCIMS_Header', '[class*="header" i] h1', '.job-title'],
@@ -1001,8 +1054,35 @@ function extractJobInfoFromPageInjected() {
 
   const location = selectors ? getText(selectors.location) : '';
 
-  const rawDesc = selectors ? getText(selectors.description) : '';
-  const description = rawDesc?.trim()?.length > 80 ? rawDesc.trim().substring(0, 3000) : '';
+  // ENHANCED: Better description extraction with fallbacks
+  let description = '';
+  if (selectors) {
+    description = getMultipleText(selectors.description, 100);
+  }
+  
+  // Fallback: Try common job description selectors
+  if (!description || description.length < 100) {
+    const fallbackSelectors = [
+      'main', 'article', '[role="main"]', 
+      '.job-description', '#job-description', '[class*="job-desc"]',
+      '.posting-description', '.job-details', '.job-content',
+      '[class*="description"]', '[id*="description"]',
+      'section[class*="about"]', 'div[class*="about"]'
+    ];
+    description = getMultipleText(fallbackSelectors, 100);
+  }
+  
+  // Last resort: Get body text but filter out nav/header/footer
+  if (!description || description.length < 100) {
+    const mainContent = document.querySelector('main') || document.querySelector('article') || document.querySelector('[role="main"]');
+    if (mainContent) {
+      description = mainContent.textContent?.trim().substring(0, 5000) || '';
+    }
+  }
+  
+  // Clean up description - remove excessive whitespace
+  description = description.replace(/\s+/g, ' ').trim();
+  if (description.length > 5000) description = description.substring(0, 5000);
 
   return {
     title: title.substring(0, 200),
